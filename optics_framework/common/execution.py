@@ -11,6 +11,7 @@ from optics_framework.common.logging_config import LoggerContext, internal_logge
 from optics_framework.common.models import TestCaseNode, ElementData
 from optics_framework.api import ActionKeyword, AppManagement, FlowControl, Verifier
 from optics_framework.common.events import Event, get_event_manager, EventStatus
+from optics_framework.common.llm_agents.manager import get_llm_agent_manager
 
 NO_TEST_CASES_LOADED = "No test cases loaded"
 
@@ -193,6 +194,10 @@ class ExecutionEngine:
     def __init__(self, session_manager: SessionManager):
         self.session_manager = session_manager
         self.event_manager = get_event_manager()
+        self.llm_agent_manager = get_llm_agent_manager()
+
+        # Register the LLM agent manager as an event subscriber
+        self.event_manager.subscribe("llm_agent_manager", self.llm_agent_manager)
 
     async def execute(self, params: ExecutionParams) -> None:
         session = self.session_manager.get_session(params.session_id)
@@ -246,6 +251,13 @@ class ExecutionEngine:
                     message=f"Starting {params.mode} execution",
                     extra={"session_id": params.session_id}
                 ))
+
+                # Register tools (keywords) for the LLM agent
+                self.llm_agent_manager.register_tools_for_session(
+                    params.session_id,
+                    runner.keyword_map
+                )
+
                 if params.mode == "batch":
                     executor = BatchExecutor(test_case=params.test_cases)
                 elif params.mode == "dry_run":
@@ -288,6 +300,11 @@ class ExecutionEngine:
                 if hasattr(runner, 'result_printer') and runner.result_printer:
                     internal_logger.debug(
                         "Stopping result printer live display")
+                    runner.result_printer.stop_live()
+
+                # Unregister tools for the LLM agent
+                self.llm_agent_manager.unregister_session(params.session_id)
+
                 # Wait for event queue to drain
                 internal_logger.debug(
                     "Event queue size before drain: %d", self.event_manager.event_queue.qsize())
