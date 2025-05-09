@@ -30,7 +30,7 @@ class LocatorStrategy(ABC):
     def supports(element_type: str, element_source: ElementSourceInterface) -> bool:
         """Determines if this strategy supports the given element type and source.
 
-        :param element_type: The type of element (e.g., 'XPath', 'Text', 'Image').
+        :param element_type: The type of element (e.g., 'XPath', 'Text', 'Image','id').
         :param element_source: The source to check compatibility with.
         :return: True if supported, False otherwise.
         """
@@ -88,7 +88,6 @@ class TextElementStrategy(LocatorStrategy):
     @staticmethod
     def supports(element_type: str, element_source: ElementSourceInterface) -> bool:
         return element_type == "Text" and LocatorStrategy._is_method_implemented(element_source, "locate")
-
 
 class TextDetectionStrategy(LocatorStrategy):
     """Strategy for locating text elements using text detection."""
