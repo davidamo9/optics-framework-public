@@ -340,7 +340,7 @@ class ActionKeyword:
 
     # Text input actions
     @with_self_healing
-    def enter_text_element(self, element: str, text: str, event_name: Optional[str] = None, *, located: Any) -> None:
+    def enter_text(self, element: str, text: str, event_name: Optional[str] = None, *, located: Any) -> None:
         """
         Enter text into a specified element.
 
@@ -357,7 +357,7 @@ class ActionKeyword:
             internal_logger.debug(f"Entering text '{text}' into element '{element}'")
             self.driver.enter_text_element(located, text, event_name)
 
-    def enter_text(self, text: str, event_name: Optional[str] = None) -> None:
+    def enter_text_direct(self, text: str, event_name: Optional[str] = None) -> None:
         """
         Enter text using the keyboard.
 
@@ -368,8 +368,7 @@ class ActionKeyword:
         utils.save_screenshot(screenshot_np, "enter_text_keyboard")
         self.driver.enter_text(text, event_name)
 
-    # @DeprecationWarning
-    def enter_text_using_keyboard(self, input: str, event_name: Optional[str] = None) -> None:
+    def enter_text_using_keyboard(self, text_input: str, event_name: Optional[str] = None) -> None:
         """
         Enter text or press a special key using the keyboard.
 
@@ -381,16 +380,16 @@ class ActionKeyword:
         """
 
 
-        if isinstance(input, str) and "_" in input:
-            key_input = input.split("_")[0].lower()
+        if isinstance(text_input, str) and "_" in text_input:
+            key_input = text_input.split("_")[0].lower()
             try:
-                input = utils.SpecialKey(key_input)
+                text_input = utils.SpecialKey(key_input)
             except ValueError:
                 pass
 
         screenshot_np = self.strategy_manager.capture_screenshot()
         utils.save_screenshot(screenshot_np, "enter_text_using_keyboard")
-        self.driver.enter_text_using_keyboard(input, event_name)
+        self.driver.enter_text_using_keyboard(text_input, event_name)
 
     @with_self_healing
     def enter_number(self, element: str, number: float, event_name: Optional[str] = None, *, located: Any) -> None:
