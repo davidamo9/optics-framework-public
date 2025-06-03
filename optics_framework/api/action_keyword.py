@@ -4,6 +4,7 @@ from typing import Callable, Optional, Any
 from optics_framework.common.logging_config import internal_logger
 from optics_framework.common.optics_builder import OpticsBuilder
 from optics_framework.common.strategies import StrategyManager
+from optics_framework.common.error_handler import ErrorHandler
 from optics_framework.common import utils
 from .verifier import Verifier
 
@@ -13,6 +14,7 @@ def with_self_healing(func: Callable) -> Callable:
     def wrapper(self, element, *args, **kwargs):
         screenshot_np = self.strategy_manager.capture_screenshot()
         utils.save_screenshot(screenshot_np, func.__name__)
+        page_source = self.strategy_manager.capture_pagesource()
 
         results = self.strategy_manager.locate(element)
         last_exception = None
@@ -26,15 +28,20 @@ def with_self_healing(func: Callable) -> Callable:
                     f"Action '{func.__name__}' failed with {result.strategy.__class__.__name__}: {e}")
                 last_exception = e
 
-        if result_count == 0:
-            # No strategies yielded a result
-            raise ValueError(
-                f"No valid strategies found for '{element}' in '{func.__name__}'")
-        if last_exception:
-            raise ValueError(
-                f"All strategies failed for '{element}' in '{func.__name__}': {last_exception}")
-        raise ValueError(
-            f"Unexpected failure: No results or exceptions for '{element}' in '{func.__name__}'")
+        error_message = str(last_exception) if last_exception else "Unknown error or all strategies silently failed"
+
+        self.error_handler.handle_error(
+            error_code="E0201",
+            error_message=error_message,
+            # session_id=self.driver.get_session_id(),
+            context_info={
+                "entity_type": "action_keyword",
+                "entity_id": func.__name__,
+                "page_source": page_source,
+                "screenshot_path": screenshot_np
+            }
+        )
+        raise ValueError(f"All strategies failed for '{element}' in '{func.__name__}': {last_exception}")
     return wrapper
 
 
@@ -54,6 +61,7 @@ class ActionKeyword:
         self.image_detection = builder.get_image_detection()
         self.text_detection = builder.get_text_detection()
         self.verifier = Verifier(builder)
+        self.error_handler = ErrorHandler()
         self.strategy_manager = StrategyManager(
             self.element_source, self.text_detection, self.image_detection)
 

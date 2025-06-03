@@ -50,6 +50,9 @@ class LocatorStrategy(ABC):
         :param method_name: The name of the method to check.
         :return: True if implemented, False if abstract or a stub.
         """
+        if not hasattr(element_source, method_name):
+            # The method is not implemented at all
+            return False
         method = getattr(element_source, method_name)
         if inspect.isabstract(method):
             return False
