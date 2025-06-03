@@ -180,6 +180,20 @@ class ScreenshotStrategy:
     def supports(element_source: ElementSourceInterface) -> bool:
         return LocatorStrategy._is_method_implemented(element_source, "capture")
 
+class PagesourceStrategy:
+    def __init__(self, element_source: ElementSourceInterface):
+        self.element_source = element_source
+
+    def capture_pagesource(self) -> Optional[np.ndarray]:
+        pagesource = self.element_source.get_page_source()
+        if pagesource is not None:
+            return pagesource
+        raise ValueError("Invalid pagesource captured")
+
+    @staticmethod
+    def supports(element_source: ElementSourceInterface) -> bool:
+        return LocatorStrategy._is_method_implemented(element_source, "get_page_source")
+
 class StrategyFactory:
     """Factory for creating locator strategies with priority ordering."""
     def __init__(self, text_detection, image_detection):
@@ -208,6 +222,12 @@ class ScreenshotFactory:
     def create_strategies(self, element_source: ElementSourceInterface) -> List[ScreenshotStrategy]:
         return [cls(element_source, **args) for cls, args in self._registry if cls.supports(element_source)]
 
+class PagesourceFactory:
+    def __init__(self):
+        self._registry = [(PagesourceStrategy, {})]
+
+    def create_strategies(self, element_source: ElementSourceInterface) -> List[PagesourceStrategy]:
+        return [cls(element_source, **args) for cls, args in self._registry if cls.supports(element_source)]
 
 class LocateResult:
     """Wrapper for location results from a strategy."""
@@ -223,8 +243,10 @@ class StrategyManager:
         self.element_source = element_source
         self.locator_factory = StrategyFactory(text_detection, image_detection)
         self.screenshot_factory = ScreenshotFactory()
+        self.pagesource_factory = PagesourceFactory()
         self.locator_strategies = self._build_locator_strategies()
         self.screenshot_strategies = self._build_screenshot_strategies()
+        self.pagesource_strategies = self._build_pagesource_strategies()
 
     def _build_locator_strategies(self) -> List[LocatorStrategy]:
         strategies = []
@@ -247,6 +269,17 @@ class StrategyManager:
         else:
             strategies.update(
                 self.screenshot_factory.create_strategies(self.element_source))
+        return strategies
+
+    def _build_pagesource_strategies(self) -> Set[PagesourceStrategy]:
+        strategies = set()
+        if isinstance(self.element_source, InstanceFallback):
+            for instance in self.element_source.instances:
+                strategies.update(
+                    self.pagesource_factory.create_strategies(instance))
+        else:
+            strategies.update(
+                self.pagesource_factory.create_strategies(self.element_source))
         return strategies
 
     def locate(self, element: str) -> Generator[LocateResult, None, None]:
@@ -285,4 +318,14 @@ class StrategyManager:
                 internal_logger.debug(
                     f"Screenshot failed with {strategy.__class__.__name__}: {e}")
         internal_logger.error("No screenshot captured.")
+        return None
+
+    def capture_pagesource(self) -> Optional[str]:
+        for strategy in self.pagesource_strategies:
+            try:
+                return strategy.capture_pagesource()
+            except Exception as e:
+                internal_logger.debug(
+                    f"Pagesource capture failed with {strategy.__class__.__name__}: {e}")
+        internal_logger.error("No pagesource captured.")
         return None
