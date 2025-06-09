@@ -38,7 +38,7 @@ class Session:
         if not driver_sources:
             raise ValueError("No enabled drivers found in configuration")
 
-        self.optics = OpticsBuilder()
+        self.optics = OpticsBuilder(session_id=self.session_id)
         self.optics.add_driver(driver_sources)
         self.optics.add_element_source(element_sources)
         self.optics.add_text_detection(text_detection)

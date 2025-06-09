@@ -9,9 +9,11 @@ from optics_framework.common.runner.printers import TreeResultPrinter, TerminalW
 from optics_framework.common.runner.test_runnner import TestRunner, PytestRunner, Runner
 from optics_framework.common.logging_config import LoggerContext, internal_logger
 from optics_framework.common.models import TestCaseNode, ElementData
-from optics_framework.api import ActionKeyword, AppManagement, FlowControl, Verifier
+from optics_framework.api import ActionKeyword, AppManagement, FlowControl, Verifier, AIKeyword
 from optics_framework.common.events import Event, get_event_manager, EventStatus
 from optics_framework.common.llm_agents.manager import get_llm_agent_manager
+from optics_framework.common.error_handler import ErrorHandler
+from optics_framework.common.llm_agents.ai_action import AIActionHandler
 
 NO_TEST_CASES_LOADED = "No test cases loaded"
 
@@ -163,9 +165,12 @@ class RunnerFactory:
     ) -> Runner:
 
         registry = KeywordRegistry()
-        action_keyword = session.optics.build(ActionKeyword)
+        error_handler = ErrorHandler()
+        ai_action_handler = AIActionHandler()
+        action_keyword = session.optics.build(ActionKeyword, error_handler=error_handler)
         app_management = session.optics.build(AppManagement)
         verifier = session.optics.build(Verifier)
+        ai_action = session.optics.build(AIKeyword, ai_handler=ai_action_handler)
 
         if runner_type == "test_runner":
             result_printer = TreeResultPrinter.get_instance(
@@ -184,7 +189,10 @@ class RunnerFactory:
         registry.register(app_management)
         registry.register(flow_control)
         registry.register(verifier)
+        registry.register(ai_action)
         runner.keyword_map = registry.keyword_map
+        error_handler.set_keyword_map(registry.keyword_map)
+        ai_action_handler.set_keyword_map(registry.keyword_map)
         return runner
 
 

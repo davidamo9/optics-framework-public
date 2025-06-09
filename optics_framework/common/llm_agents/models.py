@@ -64,6 +64,10 @@ class AgentResponse(BaseModel):
     actions: List[AgentAction] = Field(default_factory=list)
     requires_human_input: bool = False
 
+class PopupResponse(BaseModel):
+    popup_type: str              # e.g., "error", "ad", "confirmation"
+    recommended_action: str      # e.g., "click", "dismiss", "retry"
+    element_locator: str         # XPath or coordinates to interact
 
 class AgentContext(BaseModel):
     """Context information passed to the LLM agent."""

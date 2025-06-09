@@ -119,6 +119,7 @@ def save_screenshot(img, name, time_stamp = None):
 
     except Exception as e:
         internal_logger.debug(f"Error writing screenshot to file : {e}")
+    return screenshot_file_path
 
 
 def annotate(annotation_detail):
@@ -233,3 +234,19 @@ def save_page_source_html(html: str, time_stamp):
         internal_logger.debug(f"Appended new page source entry at: {time_stamp}")
 
     internal_logger.debug(f"HTML page source saved to: {page_source_file_path}")
+
+def save_llm_log(prompt: str, response: str, agent_name: str):
+    base_dir = str(ConfigHandler.get_instance().get_project_path())
+    output_dir = os.path.join(base_dir, "execution_output")
+    os.makedirs(output_dir, exist_ok=True)
+
+    llm_log_file_path = os.path.join(output_dir, "llm_logs.txt")
+    time_stamp = get_timestamp()
+    with open(llm_log_file_path, 'a', encoding='utf-8') as f:
+        f.write(f"Timestamp: {time_stamp}\n")
+        f.write(f"Agent: {agent_name}\n")
+        f.write(f"Prompt:\n{prompt}\n")
+        f.write(f"Response:\n{response}\n")
+        f.write("-" * 80 + "\n")
+
+    internal_logger.debug(f"LLM log saved to: {llm_log_file_path}")

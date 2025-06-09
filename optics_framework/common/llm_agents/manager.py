@@ -116,7 +116,8 @@ class LLMAgentManager(EventSubscriber):
             return
 
         # Find the latest screenshot if available
-        screenshot_path = self._find_latest_screenshot()
+        # screenshot_path = self._find_latest_screenshot()
+        screenshot_path = event.extra.get("screenshot_path")
 
         # Create context for the agent
         context = AgentContext(
@@ -268,6 +269,7 @@ class LLMAgentManager(EventSubscriber):
 
         return tools
 
+    @DeprecationWarning
     def _find_latest_screenshot(self) -> Optional[str]:
         """Find the latest screenshot file in the execution output directory.
 

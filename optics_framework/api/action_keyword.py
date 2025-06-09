@@ -13,7 +13,7 @@ def with_self_healing(func: Callable) -> Callable:
     @wraps(func)
     def wrapper(self, element, *args, **kwargs):
         screenshot_np = self.strategy_manager.capture_screenshot()
-        utils.save_screenshot(screenshot_np, func.__name__)
+        screenshot_path = utils.save_screenshot(screenshot_np, func.__name__)
         page_source = self.strategy_manager.capture_pagesource()
 
         results = self.strategy_manager.locate(element)
@@ -30,17 +30,32 @@ def with_self_healing(func: Callable) -> Callable:
 
         error_message = str(last_exception) if last_exception else "Unknown error or all strategies silently failed"
 
-        self.error_handler.handle_error(
+        removed = self.error_handler.handle_error(
             error_code="E0201",
             error_message=error_message,
-            # session_id=self.driver.get_session_id(),
             context_info={
                 "entity_type": "action_keyword",
                 "entity_id": func.__name__,
                 "page_source": page_source,
-                "screenshot_path": screenshot_np
+                "screenshot_path": screenshot_path
             }
         )
+        if removed:
+            internal_logger.info(f"Recovery succeeded. Retrying '{func.__name__}'...")
+            try:
+                # Retry original action (using default locate call again)
+                results = self.strategy_manager.locate(element)
+                for result in results:
+                    try:
+                        return func(self, element, located=result.value, *args, **kwargs)
+                    except Exception as e:
+                        internal_logger.error(f"Retry failed: {e}")
+                raise ValueError(f"Retry failed for '{element}' after recovery.")
+            except Exception as retry_error:
+                raise ValueError(
+                    f"Original action and retry both failed for '{element}': {retry_error}"
+                )
+
         raise ValueError(f"All strategies failed for '{element}' in '{func.__name__}': {last_exception}")
     return wrapper
 
@@ -55,13 +70,13 @@ class ActionKeyword:
     SCREENSHOT_DISABLED_MSG = "Screenshot taking is disabled, not possible to locate element."
     XPAHT_NOT_SUPPORTED_MSG = "XPath is not supported for vision based search."
 
-    def __init__(self, builder: OpticsBuilder):
+    def __init__(self, builder: OpticsBuilder, error_handler: Optional[ErrorHandler] = None):
         self.driver = builder.get_driver()
         self.element_source = builder.get_element_source()
         self.image_detection = builder.get_image_detection()
         self.text_detection = builder.get_text_detection()
         self.verifier = Verifier(builder)
-        self.error_handler = ErrorHandler()
+        self.error_handler = error_handler
         self.strategy_manager = StrategyManager(
             self.element_source, self.text_detection, self.image_detection)
 

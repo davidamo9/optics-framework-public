@@ -18,8 +18,9 @@ class OpticsBuilder:
     A builder that sets configurations and instantiates drivers for Optics Framework API classes.
     """
 
-    def __init__(self):
+    def __init__(self, session_id: Optional[str] = None):
         self.config = OpticsConfig()
+        self.session_id = session_id
 
     # Fluent methods to set configurations
     def add_driver(self, config: Union[str, List[Union[str, Dict]]]) -> 'OpticsBuilder':
@@ -59,7 +60,7 @@ class OpticsBuilder:
             return None
         return TextFactory.get_driver(self.config.text_config)
 
-    def build(self, cls: Type[T]) -> T:
+    def build(self, cls: Type[T], **kwargs) -> T:
         """
         Build an instance of the specified class using the stored configurations.
 
@@ -67,5 +68,5 @@ class OpticsBuilder:
         :return: An instance of the specified class.
         :raises ValueError: If required configurations are missing for the specified class.
         """
-        instance = cls(self)  # type: ignore
+        instance = cls(self, **kwargs)  # type: ignore
         return instance
