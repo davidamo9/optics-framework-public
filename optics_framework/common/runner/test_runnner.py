@@ -183,14 +183,25 @@ class TestRunner(Runner):
         if elapsed is not None:
             result.elapsed = f"{elapsed:.2f}s"
         if test_case_name:
-            internal_logger.debug(
-                f"Updating tree log for {result.__class__.__name__}: {result.name} -> {status}")
+            execution_logger.debug(
+                f"Updating status for {result.__class__.__name__}: {result.name} -> {status}")
             test_case_result = self.result_printer.test_state.get(
                 test_case_name)
             if test_case_result:
                 self.result_printer.print_tree_log(test_case_result)
 
-    async def _send_event(self, entity_type: str, node: Node, status: EventStatus, reason: Optional[str] = None, parent_id: Optional[str] = None) -> None:
+    async def _send_event(
+        self,
+        entity_type: str,
+        node: Node,
+        status: EventStatus,
+        reason: Optional[str] = None,
+        parent_id: Optional[str] = None,
+        args: Optional[List[Any]] = None,
+        start_time: Optional[float] = None,
+        end_time: Optional[float] = None,
+        elapsed: Optional[float] = None
+    ) -> None:
         event = Event(
             entity_type=entity_type,
             entity_id=node.id,
@@ -198,7 +209,11 @@ class TestRunner(Runner):
             status=status,
             message=f"{reason or ''} (Attempt {node.attempt_count})",
             parent_id=parent_id,
-            extra={"session_id": self.session_id}
+            extra={"session_id": self.session_id},
+            args=args,
+            start_time=start_time,
+            end_time=end_time,
+            elapsed=elapsed
         )
         await queue_event(event)
 
@@ -234,7 +249,11 @@ class TestRunner(Runner):
         start_time = time.time()
 
         keyword_node.state = State.RUNNING
-        await self._send_event("keyword", keyword_node, EventStatus.RUNNING, parent_id=module_node.id)
+        await self._send_event(
+            "keyword", keyword_node, EventStatus.RUNNING,
+            parent_id=module_node.id,
+            start_time=start_time
+        )
         self._update_status(keyword_result, "RUNNING",
                             time.time() - start_time, test_case_result.name)
 
@@ -243,7 +262,14 @@ class TestRunner(Runner):
         if not method:
             keyword_node.state = State.ERROR
             keyword_node.last_failure_reason = "Keyword not found"
-            await self._send_event("keyword", keyword_node, EventStatus.FAIL, "Keyword not found", parent_id=module_node.id)
+            await self._send_event(
+                "keyword", keyword_node, EventStatus.FAIL,
+                reason="Keyword not found",
+                parent_id=module_node.id,
+                start_time=start_time,
+                end_time=time.time(),
+                elapsed=time.time() - start_time
+            )
             self._update_status(keyword_result, "FAIL",
                                 time.time() - start_time, test_case_result.name)
             return False
@@ -254,17 +280,36 @@ class TestRunner(Runner):
                 param) for i, param in enumerate(keyword_node.params)]
             if isinstance(keyword_result, KeywordResult):
                 keyword_result.resolved_name = f"{keyword_node.name} ({', '.join(str(p) for p in resolved_params)})" if resolved_params else keyword_node.name
+            execution_logger.debug(f"Executing keyword: {keyword_node.name} with params: {resolved_params}")
             method(*resolved_params)
             await asyncio.sleep(0.1)
             keyword_node.state = State.COMPLETED_PASSED
-            await self._send_event("keyword", keyword_node, EventStatus.PASS, parent_id=module_node.id)
+            end_time = time.time()
+            await self._send_event(
+                "keyword", keyword_node, EventStatus.PASS,
+                parent_id=module_node.id,
+                args=resolved_params,
+                start_time=start_time,
+                end_time=end_time,
+                elapsed=end_time - start_time
+            )
             self._update_status(keyword_result, "PASS",
                                 time.time() - start_time, test_case_result.name)
             return True
+
         except Exception as e:
             keyword_node.state = State.COMPLETED_FAILED
             keyword_node.last_failure_reason = str(e)
-            await self._send_event("keyword", keyword_node, EventStatus.FAIL, str(e), parent_id=module_node.id)
+            end_time = time.time()
+            await self._send_event(
+                "keyword", keyword_node, EventStatus.FAIL,
+                reason=str(e),
+                parent_id=module_node.id,
+                args=resolved_params,
+                start_time=start_time,
+                end_time=end_time,
+                elapsed=end_time - start_time
+            )
             self._update_status(keyword_result, "FAIL",
                                 time.time() - start_time, test_case_result.name)
 
@@ -279,7 +324,7 @@ class TestRunner(Runner):
             test_case_result.name, module_node.name)
         start_time = time.time()
         module_node.state = State.RUNNING
-        await self._send_event("module", module_node, EventStatus.RUNNING, parent_id=test_case_result.id)
+        await self._send_event("module", module_node, EventStatus.RUNNING, parent_id=test_case_result.id, start_time=start_time)
         self._update_status(module_result, "RUNNING",
                             time.time() - start_time, test_case_result.name)
 
@@ -288,14 +333,18 @@ class TestRunner(Runner):
             extra["keyword"] = current.name
             if not await self._execute_keyword(current, module_node, test_case_result, extra):
                 module_node.state = State.COMPLETED_FAILED
-                await self._send_event("module", module_node, EventStatus.FAIL, parent_id=test_case_result.id)
+                await self._send_event("module", module_node, EventStatus.FAIL,
+                                    parent_id=test_case_result.id,
+                                    start_time=start_time, end_time=time.time(), elapsed=time.time() - start_time)
                 self._update_status(
                     module_result, "FAIL", time.time() - start_time, test_case_result.name)
                 return False
             current = current.next
 
         module_node.state = State.COMPLETED_PASSED
-        await self._send_event("module", module_node, EventStatus.PASS, parent_id=test_case_result.id)
+        await self._send_event("module", module_node, EventStatus.PASS,
+                            parent_id=test_case_result.id,
+                            start_time=start_time, end_time=time.time(), elapsed=time.time() - start_time)
         self._update_status(module_result, "PASS",
                             time.time() - start_time, test_case_result.name)
         return True
@@ -311,7 +360,8 @@ class TestRunner(Runner):
         if not current:
             self._update_status(test_case_result, "FAIL",
                                 time.time() - start_time, test_case_result.name)
-            await self._send_event("test_case", TestCaseNode(name=test_case, id=testcase_id), EventStatus.FAIL)
+            await self._send_event("test_case", TestCaseNode(name=test_case, id=testcase_id), EventStatus.FAIL,
+                                    start_time=start_time, end_time=time.time(), elapsed=time.time() - start_time)
             return test_case_result
 
         current.id = testcase_id
@@ -324,7 +374,7 @@ class TestRunner(Runner):
         )
         self.result_printer.test_state[test_case] = test_case_result
         current.state = State.RUNNING
-        await self._send_event("test_case", current, EventStatus.RUNNING)
+        await self._send_event("test_case", current, EventStatus.RUNNING, start_time=start_time)
         self._update_status(test_case_result, "RUNNING",
                             time.time() - start_time, test_case_result.name)
 
@@ -333,33 +383,37 @@ class TestRunner(Runner):
             if dry_run:
                 if not await self._dry_run_module(module_current, test_case_result, testcase_id):
                     current.state = State.COMPLETED_FAILED
-                    await self._send_event("test_case", current, EventStatus.FAIL)
+                    await self._send_event("test_case", current, EventStatus.FAIL,
+                                        start_time=start_time, end_time=time.time(), elapsed=time.time() - start_time)
                     self._update_status(test_case_result, "FAIL", time.time() - start_time, test_case_result.name)
                     return test_case_result
             else:
                 if not await self._process_module(module_current, test_case_result, extra):
                     current.state = State.COMPLETED_FAILED
-                    await self._send_event("test_case", current, EventStatus.FAIL)
+                    await self._send_event("test_case", current, EventStatus.FAIL,
+                                        start_time=start_time, end_time=time.time(), elapsed=time.time() - start_time)
                     self._update_status(test_case_result, "FAIL", time.time() - start_time, test_case_result.name)
                     return test_case_result
             module_current = module_current.next
 
         current.state = State.COMPLETED_PASSED
-        await self._send_event("test_case", current, EventStatus.PASS)
+        await self._send_event("test_case", current, EventStatus.FAIL,
+                               start_time=start_time, end_time=time.time(), elapsed=time.time() - start_time)
         self._update_status(test_case_result, "PASS", time.time() - start_time, test_case_result.name)
         return test_case_result
 
     async def _dry_run_module(self, module_node: ModuleNode, test_case_result: TestCaseResult, testcase_id: str) -> bool:
         module_result = self._find_result(test_case_result.name, module_node.name)
+        start_time = time.time()
         module_node.state = State.RUNNING
-        await self._send_event("module", module_node, EventStatus.RUNNING, parent_id=testcase_id)
+        await self._send_event("module", module_node, EventStatus.RUNNING, parent_id=testcase_id, start_time=start_time)
         self._update_status(module_result, "RUNNING", 0.0, test_case_result.name)
 
         keyword_current = module_node.keywords_head
         while keyword_current:
             keyword_result = self._find_result(test_case_result.name, module_node.name, keyword_current.id)
             keyword_current.state = State.RUNNING
-            await self._send_event("keyword", keyword_current, EventStatus.RUNNING, parent_id=module_node.id)
+            await self._send_event("keyword", keyword_current, EventStatus.RUNNING, parent_id=module_node.id, start_time=start_time)
             self._update_status(keyword_result, "RUNNING", 0.0, test_case_result.name)
 
             try:
@@ -371,13 +425,15 @@ class TestRunner(Runner):
                     raise ValueError("Keyword not found")
             except ValueError as e:
                 keyword_current.state = State.COMPLETED_FAILED
-                await self._send_event("keyword", keyword_current, EventStatus.FAIL, str(e), parent_id=module_node.id)
+                await self._send_event("keyword", keyword_current, EventStatus.FAIL, str(e),
+                                    parent_id=module_node.id, start_time=start_time, end_time=time.time(), elapsed=time.time() - start_time)
                 self._update_status(keyword_result, "FAIL", 0.0, test_case_result.name)
                 self._update_status(module_result, "FAIL", 0.0, test_case_result.name)
                 return False
 
             keyword_current.state = State.COMPLETED_PASSED
-            await self._send_event("keyword", keyword_current, EventStatus.PASS, parent_id=module_node.id)
+            await self._send_event("module", module_node, EventStatus.PASS,
+                            parent_id=testcase_id, start_time=start_time, end_time=time.time(), elapsed=time.time() - start_time)
             self._update_status(keyword_result, "PASS", 0.0, test_case_result.name)
             keyword_current = keyword_current.next
 
