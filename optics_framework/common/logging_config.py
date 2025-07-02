@@ -135,7 +135,8 @@ def initialize_handlers():
     execution_console_handler.setLevel(log_level)
 
     # Prepare directories
-    log_dir = Path(config.execution_output_path)
+    execution_output_path = config.execution_output_path or (Path.cwd() / "logs")
+    log_dir = Path(execution_output_path).expanduser()
     log_dir.mkdir(parents=True, exist_ok=True)
     internal_logger.debug(f"Output directory: {log_dir}, writable={os.access(log_dir, os.W_OK)}")
 
