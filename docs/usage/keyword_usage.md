@@ -6,7 +6,7 @@ This document outlines the available keywords for the Optics Framework, which ca
 
 These keywords handle interactions with the application, such as clicking, swiping, and text input.
 
-- **Press Element**
+### Press Element
   Presses a specified element on the screen.
   - **Parameters**:
     - `element`: The target to press. Can be:
@@ -17,18 +17,19 @@ These keywords handle interactions with the application, such as clicking, swipi
     - `offset_x` (optional, default=0): Horizontal offset in pixels from the element’s center (integer).
     - `offset_y` (optional, default=0): Vertical offset in pixels from the element’s center (integer).
     - `event_name` (optional): A string identifier for logging or triggering events (e.g., "click_home").
+    - `aoi_x`, `aoi_y`, `aoi_width`, `aoi_height` (all optional): Define an Area of Interest in percentages (0–100) to constrain search. When provided, all four must be specified.
   - **Example**: `Press Element,${Subscriptions_text},2,10,20,click_event`
 
-- **Press By Percentage**
+### Press By Percentage
   Presses at percentage-based coordinates on the screen.
   - **Parameters**:
-    - `percent_x`: X-coordinate as a percentage of screen width (float, 0.0 to 1.0, e.g., 0.5 for 50%).
-    - `percent_y`: Y-coordinate as a percentage of screen height (float, 0.0 to 1.0).
+    - `percent_x`: X-coordinate as a percentage of screen width (integer 0–100, e.g., 50 for 50%).
+    - `percent_y`: Y-coordinate as a percentage of screen height (integer 0–100).
     - `repeat` (optional, default=1): Number of times to press (integer).
     - `event_name` (optional): A string identifier for the press event (e.g., "center_press").
-  - **Example**: `Press By Percentage,0.5,0.5,,press_center`
+  - **Example**: `Press By Percentage,50,50,,press_center`
 
-- **Press By Coordinates**
+### Press By Coordinates
   Presses at absolute coordinates on the screen.
   - **Parameters**:
     - `coor_x`: X-coordinate in pixels (integer, e.g., 500).
@@ -37,7 +38,7 @@ These keywords handle interactions with the application, such as clicking, swipi
     - `event_name` (optional): A string identifier for the press event (e.g., "tap_event").
   - **Example**: `Press By Coordinates,500,800,,tap_event`
 
-- **Press Element With Index**
+### Press Element With Index
   Presses an element (text or image) at a specified index if multiple matches exist.
   - **Parameters**:
     - `element`: The target to press:
@@ -48,7 +49,7 @@ These keywords handle interactions with the application, such as clicking, swipi
     - `event_name` (optional): A string identifier for the press event (e.g., "home_click").
   - **Example**: `Press Element With Index,${Home_text},1,home_click`
 
-- **Detect And Press**
+### Detect And Press
   Detects an element and presses it if found within a timeout.
   - **Parameters**:
     - `element`: The target to detect and press:
@@ -59,7 +60,7 @@ These keywords handle interactions with the application, such as clicking, swipi
     - `event_name` (optional): A string identifier for the press event (e.g., "detect_click").
   - **Example**: `Detect And Press,${Subscriptions_image},10,detect_click`
 
-- **Press Checkbox** *(Deprecated)*
+### Press Checkbox (Deprecated)
   Presses a checkbox element (use `Press Element` instead).
   - **Parameters**:
     - `element`: The checkbox to press:
@@ -69,7 +70,7 @@ These keywords handle interactions with the application, such as clicking, swipi
     - `event_name` (optional): A string identifier for the press event (e.g., "toggle").
   - **Example**: `Press Checkbox,${checkbox_xpath},toggle`
 
-- **Press Radio Button** *(Deprecated)*
+### Press Radio Button (Deprecated)
   Presses a radio button element (use `Press Element` instead).
   - **Parameters**:
     - `element`: The radio button to press:
@@ -79,7 +80,7 @@ These keywords handle interactions with the application, such as clicking, swipi
     - `event_name` (optional): A string identifier for the press event (e.g., "select").
   - **Example**: `Press Radio Button,${radio_xpath},select`
 
-- **Select Dropdown Option**
+### Select Dropdown Option
   Selects an option from a dropdown (currently unimplemented).
   - **Parameters**:
     - `element`: The dropdown element:
@@ -90,7 +91,7 @@ These keywords handle interactions with the application, such as clicking, swipi
     - `event_name` (optional): A string identifier for the selection event (e.g., "select_option").
   - **Example**: `Select Dropdown Option,${dropdown_xpath},Option 1,select_option`
 
-- **Swipe**
+### Swipe
   Performs a swipe action from specified coordinates in a direction.
   - **Parameters**:
     - `coor_x`: Starting X-coordinate in pixels (integer, e.g., 300).
@@ -100,7 +101,7 @@ These keywords handle interactions with the application, such as clicking, swipi
     - `event_name` (optional): A string identifier for the swipe event (e.g., "swipe_up").
   - **Example**: `Swipe,300,400,up,100,swipe_up`
 
-- **Swipe Seekbar To Right Android** *(Deprecated)*
+### Swipe Seekbar To Right Android (Deprecated)
   Swipes a seekbar to the right (Android-specific).
   - **Parameters**:
     - `element`: The seekbar element:
@@ -110,7 +111,7 @@ These keywords handle interactions with the application, such as clicking, swipi
     - `event_name` (optional): A string identifier for the swipe event (e.g., "adjust").
   - **Example**: `Swipe Seekbar To Right Android,${seekbar_xpath},adjust`
 
-- **Swipe Until Element Appears**
+### Swipe Until Element Appears
   Swipes in a direction until an element appears or timeout is reached.
   - **Parameters**:
     - `element`: The target element:
@@ -122,7 +123,7 @@ These keywords handle interactions with the application, such as clicking, swipi
     - `event_name` (optional): A string identifier for the swipe event (e.g., "scroll_to_home").
   - **Example**: `Swipe Until Element Appears,${Home_image},down,15,scroll_to_home`
 
-- **Swipe From Element**
+### Swipe From Element
   Swipes starting from a specified element.
   - **Parameters**:
     - `element`: The starting element:
@@ -134,14 +135,14 @@ These keywords handle interactions with the application, such as clicking, swipi
     - `event_name` (optional): A string identifier for the swipe event (e.g., "swipe_left").
   - **Example**: `Swipe From Element,${Subscriptions_text},left,50,swipe_left`
 
-- **Scroll**
+### Scroll
   Performs a scroll action in a specified direction.
   - **Parameters**:
     - `direction`: Scroll direction ("up", "down", "left", "right").
     - `event_name` (optional): A string identifier for the scroll event (e.g., "scroll_down").
   - **Example**: `Scroll,down,scroll_down`
 
-- **Scroll Until Element Appears**
+### Scroll Until Element Appears
   Scrolls in a direction until an element appears or timeout is reached.
   - **Parameters**:
     - `element`: The target element:
@@ -153,7 +154,7 @@ These keywords handle interactions with the application, such as clicking, swipi
     - `event_name` (optional): A string identifier for the scroll event (e.g., "scroll_to_top").
   - **Example**: `Scroll Until Element Appears,${Home_xpath},up,20,scroll_to_top`
 
-- **Scroll From Element**
+### Scroll From Element
   Scrolls starting from a specified element.
   - **Parameters**:
     - `element`: The starting element:
@@ -165,7 +166,7 @@ These keywords handle interactions with the application, such as clicking, swipi
     - `event_name` (optional): A string identifier for the scroll event (e.g., "scroll_right").
   - **Example**: `Scroll From Element,${Subscriptions_image},right,100,scroll_right`
 
-- **Enter Text**
+### Enter Text
   Enters text into a specified element.
   - **Parameters**:
     - `element`: The input field:
@@ -176,21 +177,21 @@ These keywords handle interactions with the application, such as clicking, swipi
     - `event_name` (optional): A string identifier for the input event (e.g., "search_input").
   - **Example**: `Enter Text,${search_field_xpath},Hello World,search_input`
 
-- **Enter Text Direct**
+### Enter Text Direct
   Enters text without the need of a specified element or input field. Does not support special keys.
   - **Parameters**:
     - `text`: The text to enter (string, e.g., "Hello World").
     - `event_name` (optional): A string identifier for the input event (e.g., "search_input").
   - **Example**: `Enter Text Direct,Hello World,search_input`
 
-- **Enter Text Using Keyboard**
+### Enter Text Using Keyboard
   Enters text or special keys such as Enter, Tab, Space, Backspace using the keyboard, supported for appium and selenium.
   - **Parameters**:
     - `text or special key`: The text to enter (string, e.g., "Test Input") or special key in angle brackets (e.g., "<enter>", "<tab>").
     - `event_name` (optional): A string identifier for the input event (e.g., "keyboard_input").
   - **Example**: `Enter Text Using Keyboard,Test Input<enter>,keyboard_input`
 
-- **Enter Number**
+### Enter Number
   Enters a number into a specified element.
   - **Parameters**:
     - `element`: The input field:
@@ -201,14 +202,14 @@ These keywords handle interactions with the application, such as clicking, swipi
     - `event_name` (optional): A string identifier for the input event (e.g., "number_input").
   - **Example**: `Enter Number,${quantity_field_xpath},42,number_input`
 
-- **Press Keycode**
+### Press Keycode
   Presses a specified keycode (e.g., Android keycodes).
   - **Parameters**:
     - `keycode`: The keycode to press (integer, e.g., 66 for Enter on Android).
     - `event_name`: A string identifier for the key press event (e.g., "enter_key").
   - **Example**: `Press Keycode,66,enter_key`
 
-- **Clear Element Text**
+### Clear Element Text
   Clears text from a specified element.
   - **Parameters**:
     - `element`: The input field to clear:
@@ -218,7 +219,7 @@ These keywords handle interactions with the application, such as clicking, swipi
     - `event_name` (optional): A string identifier for the clear event (e.g., "clear_input").
   - **Example**: `Clear Element Text,${input_field_xpath},clear_input`
 
-- **Get Text**
+### Get Text
   Retrieves text from a specified element (returns None if not supported).
   - **Parameters**:
     - `element`: The target element:
@@ -227,7 +228,7 @@ These keywords handle interactions with the application, such as clicking, swipi
       - *Image*: Not supported (use text/XPath only).
   - **Example**: `Get Text,${title_xpath}`
 
-- **Sleep**
+### Sleep
   Pauses execution for a specified duration.
   - **Parameters**:
     - `duration`: Time to sleep in seconds (integer, e.g., 5).
@@ -237,12 +238,17 @@ These keywords handle interactions with the application, such as clicking, swipi
 
 These keywords manage application lifecycle operations.
 
-- **Initialise Setup**
-  Sets up the environment for the driver module.
-  - **Parameters**: None
-  - **Example**: `Initialise Setup`
+### Setup
+  Configure Optics with driver/element sources and detection settings. Accepts either an inline config JSON/YAML string or structured parameters.
+  - **Parameters**: `config` (preferred, string/dict), or legacy `driver_sources`, `elements_sources`, `image_detection`, `text_detection`, `execution_output_path`.
+  - **Example**: `Setup,{"driver_sources":[{"appium":{"enabled":true,"url":"http://localhost:4723","capabilities":{}}}],"elements_sources":[{"appium_screenshot":{"enabled":true}}]}`
 
-- **Launch App**
+### Setup From File
+  Configure Optics using a JSON/YAML config file path.
+  - **Parameters**: `config_file_path`
+  - **Example**: `Setup From File,config.yaml`
+
+### Launch App
   Launches the configured application (as defined in `config.yaml`).
   - **Parameters**:
     - `app_identifier` (optional): App package/bundle name (string, e.g., "com.example.app")
@@ -250,31 +256,31 @@ These keywords manage application lifecycle operations.
     - `event_name` (optional): A string identifier for the launch event (e.g., "app_start")
   - **Example**: `Launch App,com.example.app,MainActivity,app_start`
 
-- **Start Appium Session** *(Deprecated)*
+### Start Appium Session (Deprecated)
   Starts an Appium session (same as `Launch App` for Appium).
   - **Parameters**:
     - `event_name` (optional): A string identifier for the session event (e.g., "session_start").
   - **Example**: `Start Appium Session,session_start`
 
-- **Start Other App**
+### Launch Other App
   Starts another application by bundle ID.
   - **Parameters**:
     - `bundleid`: The bundle/package ID of the app (string, e.g., "com.example.app")
   - **Example**: `Start Other App,com.example.app`
 
-- **Close And Terminate App**
+### Close And Terminate App
   Closes and terminates the current application.
   - **Parameters**: None
   - **Example**: `Close And Terminate App`
 
-- **Force Terminate App**
+### Force Terminate App
   Forcefully terminates the specified application.
   - **Parameters**:
     - `app_name`: The name or package of the app to terminate (string, e.g., "com.example.app")
     - `event_name` (optional): A string identifier for the termination event (e.g., "force_stop")
   - **Example**: `Force Terminate App,com.example.app,force_stop`
 
-- **Get App Version**
+### Get App Version
   Retrieves the version of the application (returns None if not available).
   - **Parameters**: None
   - **Example**: `Get App Version`
@@ -283,13 +289,13 @@ These keywords manage application lifecycle operations.
 
 These keywords manage test flow, such as loops and conditions.
 
-- **Execute Module**
+### Execute Module
   Executes a named module from `test_modules.csv`.
   - **Parameters**:
     - `module_name`: The name of the module to execute (string, e.g., "Interact using text").
   - **Example**: `Execute Module,Interact using text`
 
-- **Run Loop**
+### Run Loop
   Runs a loop over a target module, either by count or with variables.
   - **Parameters**:
     - `target`: The module to loop over (string, e.g., "Dynamic Launch").
@@ -301,7 +307,7 @@ These keywords manage test flow, such as loops and conditions.
     - Count-based: `Run Loop,Dynamic Launch,3`
     - Variable-based: `Run Loop,Dynamic Launch,${METHOD},${List}`
 
-- **Condition**
+### Condition
   Evaluates conditions and executes the corresponding target module.
   - **Parameters**:
     - `condition1`: A condition expression (string, e.g., `${METHOD} == 'text'`) using variables from `elements.csv`.
@@ -310,7 +316,7 @@ These keywords manage test flow, such as loops and conditions.
     - `else_target` (optional): The module to execute if no conditions are true (string, e.g., "Interact using images").
   - **Example**: `Condition,${METHOD} == 'text',Interact using text,${METHOD} == 'xpath',Interact using xpath,Interact using images`
 
-- **Read Data**
+### Read Data
   Reads data from a file, environment variable, list, or API, with optional query string for filtering/selection.
 
   - **Parameters**:
@@ -320,25 +326,34 @@ These keywords manage test flow, such as loops and conditions.
   - **Example**: `Read Data,${List},optics_framework/samples/contact/elements.csv,status=active;columns=name`
   - **Example**: `Read Data,${List},ENV:CONTACT_NAME`
 
-- **Invoke API**
+### Invoke API
   Invokes an API call defined in the session's API config, with variable substitution and response extraction.
   - **Parameters**:
     - `api_name`: API to invoke (format: `collection.api_name`, e.g., `login.auth_token`)
   - **Example**: `Invoke API,login.auth_token`
   - **Example**: `Invoke API,login.send_otp`
 
-- **Evaluate**
+### Evaluate
   Evaluates an expression and stores the result in a variable.
   - **Parameters**:
     - `param1`: The variable to store the result (string, e.g., `${result}`; typically in `${name}` format).
     - `param2`: The expression to evaluate (string, e.g., `${count} + 1`), using variables from `elements.csv`.
   - **Example**: `Evaluate,${result},${count} + 1`
 
+### Date Evaluate
+  Evaluates a date expression and stores the result in a variable with formatting.
+  - **Parameters**:
+    - `param1`: Variable to store result (e.g., `${date_str}`)
+    - `param2`: Base date expression or ISO date (e.g., `today`)
+    - `param3`: Offset expression (e.g., `+3d`, `-1w`)
+    - `param4` (optional, default=`"%d %B"`): Output format string
+  - **Example**: `Date Evaluate,${date_str},today,+3d,%Y-%m-%d`
+
 ## Verification Keywords
 
 These keywords verify elements, screens, and data.
 
-- **Validate Element**
+### Validate Element
   Verifies the presence of an element.
   - **Parameters**:
     - `element`: The element to verify:
@@ -350,7 +365,7 @@ These keywords verify elements, screens, and data.
     - `event_name` (optional): A string identifier for the verification event (e.g., "check_home").
   - **Example**: `Validate Element,${Home_xpath},5,any,check_home`
 
-- **Is Element**
+### Is Element
   Checks if an element is in a specified state (unimplemented).
   - **Parameters**:
     - `element`: The element to check:
@@ -362,7 +377,7 @@ These keywords verify elements, screens, and data.
     - `event_name` (optional): A string identifier for the check event (e.g., "check_button").
   - **Example**: `Is Element,${button_xpath},visible,10,check_button`
 
-- **Assert Equality**
+### Assert Equality
   Compares two values for equality (unimplemented).
   - **Parameters**:
     - `output`: The first value to compare (string or variable, e.g., `${result}`).
@@ -370,7 +385,7 @@ These keywords verify elements, screens, and data.
     - `event_name` (optional): A string identifier for the comparison event (e.g., "verify_result").
   - **Example**: `Assert Equality,${result},42,verify_result`
 
-- **Assert Presence**
+### Assert Presence
   Asserts the presence of one or more elements.
   - **Parameters**:
     - `elements`: Comma-separated elements to check:
@@ -383,7 +398,7 @@ These keywords verify elements, screens, and data.
     - `event_name` (optional): A string identifier for the assertion event (e.g., "verify_screen").
   - **Example**: `Assert Presence,${Subscriptions_text},${Home_xpath},10,all,verify_screen`
 
-- **Validate Screen**
+### Validate Screen
   Verifies the screen by checking element presence (alias for `Assert Presence`).
   - **Parameters**:
     - `elements`: Comma-separated elements to verify:
@@ -395,6 +410,28 @@ These keywords verify elements, screens, and data.
     - `rule` (optional, default="any"): Verification rule ("any" or "all").
     - `event_name` (optional): A string identifier for the verification event (e.g., "check_screen").
   - **Example**: `Validate Screen,${Home_image},${Subscriptions_image},15,any,check_screen`
+
+## Utilities
+
+### Get Interactive Elements
+  Retrieves a list of interactive elements on the current screen.
+  - **Parameters**: None
+  - **Example**: `Get Interactive Elements`
+
+### Capture Screenshot
+  Captures a base64-encoded screenshot of the current screen.
+  - **Parameters**: None
+  - **Example**: `Capture Screenshot`
+
+### Capture Page Source
+  Captures the current page source (e.g., XML/HTML depending on driver).
+  - **Parameters**: None
+  - **Example**: `Capture Page Source`
+
+### Quit
+  Cleans up session resources and terminates the active session.
+  - **Parameters**: None
+  - **Example**: `Quit`
 
 ## Additional Information
 

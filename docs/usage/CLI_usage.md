@@ -1,6 +1,6 @@
 # CLI Guide
 
-This section describes the available commands for the `optics-framework` CLI.
+This section describes the available commands for the `optics` CLI.
 
 ## Setup Optics Framework
 
@@ -26,24 +26,24 @@ optics setup --install <driver_name1> <driver_name2> ...
 
 ## Executing Test Cases
 
-Run test cases with the following command:
+Run test cases from a project folder (auto-discovers `config.yaml`, CSVs, and APIs):
 
 ```bash
-optics execute <project_path> --test-cases <test_case_name> --runner <runner_name>
+optics execute <project_path> [--runner <runner_name>] [--no-use-printer]
 ```
 
 **Options:**
 
 - `<project_path>`: Path to the project directory.
-- `--test-cases <test_case_name>`: Path to the test cases file.
-- `--runner <runner_name>`: Specify the test runner to use. [Current support: `test_runner` (default), `pytest`]
+- `--runner <runner_name>`: Test runner to use. Current support: `test_runner` (default).
+- `--no-use-printer`: Disable the live result printer (enabled by default).
 
 ## Initializing a New Project
 
 Use the following command to initialize a new project:
 
 ```bash
-optics init --name <project_name> --path <directory> --template <sample_name> --git-init
+optics init --name <project_name> [--path <directory>] [--template <sample_name>] [--git-init] [--force]
 ```
 
 **Options:**
@@ -56,18 +56,17 @@ optics init --name <project_name> --path <directory> --template <sample_name> --
 
 ## Generating Code
 
-**TODO**
-
-Generate test automation code from an input CSV file:
+Generate test framework boilerplate from a project folder:
 
 ```bash
-optics generate <input_csv> --output <output_generated_code>
+optics generate <project_path> [--framework pytest|robot] [--output <file>]
 ```
 
 **Options:**
 
-- `<input_csv>`: Path to the input CSV file.
-- `--output <output_generated_code>`: Specify the output file.
+- `<project_path>`: Path to the project folder containing CSV/YAML.
+- `--framework`: Output framework (`pytest` default or `robot`).
+- `--output`: Output file name (default: `test_generated.py` or `test_generated.robot`).
 
 ## Listing Available Keywords
 
@@ -79,63 +78,64 @@ optics list
 
 ## Executing Dry Run
 
-Execute a dry run of all test cases:
+Execute a dry run (parses files, no device actions):
 
 ```bash
-optics dry_run <project_path>
-```
-
-Execute a dry run of a specific test case:
-
-```bash
-optics dry_run <project_path> --test-case "<test-case-name>"
+optics dry_run <project_path> [--runner <runner_name>] [--no-use-printer]
 ```
 
 **Options:**
 
 - `<project_path>`: Path to the project directory.
-- `--test-case "<test-case-name>"`: Specify the test case to execute.
+- `--runner <runner_name>`: Test runner to use. Current support: `test_runner` (default).
+- `--no-use-printer`: Disable the live result printer (enabled by default).
 
 ## Showing Help Information
 
 Get help for the CLI:
 
 ```bash
-optics-framework --help
+optics --help
 ```
 
-## Managing Configuration
+## Managing Configuration (TUI)
 
-Set, reset, or list configuration values:
+Open the interactive configuration editor (Textual UI):
 
 ```bash
-optics-framework config --set <key> <value> --reset --list
+optics config
 ```
 
-**Options:**
-
-- `--set <key> <value>`: Set a configuration key-value pair.
-- `--reset`: Reset all configurations to default.
-- `--list`: Display current configuration values.
+Use arrow keys to navigate, Space to edit, S to save.
 
 ## Checking Version
 
 Check the installed version of `optics-framework`:
 
 ```bash
-optics-framework --version
+optics --version
 ```
+
+## Running the API Server
+
+Start the built-in FastAPI server (exposes session and keyword endpoints):
+
+```bash
+optics serve [--host 127.0.0.1] [--port 8000]
+```
+
+Once running, check `GET /` for health and version.
 
 ## Additional Information
 
-!!! info "Command Usage"
-    All commands assume `optics-framework` is installed and accessible in your terminal. Use `pip install optics-framework` if not already installed.
+!!! info "Command Name"
+    The CLI entry point is `optics`. Install the package and ensure your environment PATH is configured.
 
 !!! tip "Optional Parameters"
     Options like `--runner`, `--force`, and `--git-init` are optional. Omit them to use defaults (e.g., `test_runner` for `--runner`).
 
-!!! warning "TODO Section"
-    The `Generating Code` section is marked as **TODO**, indicating it’s not yet fully implemented or documented. Functionality may be limited.
+!!! tip "Autocompletion"
+    Enable shell completion for faster usage with: `optics completion`.
 
 !!! note "Driver Installation"
     When using `optics setup --install`, ensure `<driver_name1> <driver_name2> ...` matches available drivers listed by `optics setup --list`.

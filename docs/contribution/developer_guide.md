@@ -31,10 +31,11 @@ For changes related to source code:
 poetry install --with dev
 ```
 
-For changes related to documentation:
+For changes related to documentation (MkDocs + Material):
 
 ```bash
 poetry install --with docs
+poetry run mkdocs serve
 ```
 
 For default installation:
@@ -77,13 +78,12 @@ poetry run black .
 
 - Make changes to the documentation in the `docs/` directory.
 - Ensure the documentation is clear, concise, and follows the style guide.
-- Use Sphinx for generating documentation.
+- Use MkDocs to preview and build the site.
 
 For live changes while working on documentation:
-Use Sphinx to automatically rebuild your documentation as you make changes:
 
 ```bash
-poetry run sphinx-autobuild docs/source docs/build/html
+poetry run mkdocs serve
 ```
 
 ### Run Tests

@@ -72,7 +72,7 @@ Repeat Test,Run Loop,Dynamic Launch,${METHOD},${List}
 ```
 
 - **module_name**: The name of the module.
-- **module_step**: A keyword or action (e.g., `Launch App`, `Press Element`). See [Keywords Reference](#) for a full list.
+- **module_step**: A keyword or action (e.g., `Launch App`, `Press Element`). See [Keywords Reference](usage/keyword_usage.md) for a full list.
 - **param_1, param_2, ...**: Parameters for the action, such as element IDs or conditions.
 
 ### elements.csv
@@ -207,13 +207,7 @@ To check for syntactical errors in your CSV files and configuration, run a dry r
 optics dry_run ./youtube
 ```
 
-For a specific test case:
-
-```bash
-optics dry_run ./youtube --test-case "Running youtube using text"
-```
-
-This command simulates the test execution without interacting with the device, helping you catch issues early.
+This parses the project and simulates execution without interacting with the device, helping you catch issues early.
 
 ## Executing Tests
 
@@ -223,7 +217,6 @@ Once validated, execute your tests with:
 optics execute ./youtube
 ```
 
-- **./youtube**: Path to your project directory.
-- **--test-cases**: Path to the `test_cases.csv` file.
+- `./youtube`: Path to your project directory. The runner auto-discovers `config.yaml`, CSVs, and API YAML.
 
 Output, including logs, will be saved in the `execution_output/` folder.
